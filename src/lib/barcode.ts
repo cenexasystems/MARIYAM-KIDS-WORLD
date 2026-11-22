@@ -249,9 +249,18 @@ export function renderBarcodeSvg(
     svgElement.setAttribute('shape-rendering', 'crispEdges')
     svgElement.style.shapeRendering = 'crispEdges'
 
-    const rects = svgElement.querySelectorAll('rect')
-    rects.forEach((rect) => {
-      rect.setAttribute('fill', '#000000')
+    // JsBarcode draws a full-size background <rect> (direct child of <svg>) behind the bars.
+    // Only the bars (rects inside <g>) may be black; the background must stay light.
+    const bg = options?.background ?? '#ffffff'
+    svgElement.querySelectorAll('rect').forEach((rect) => {
+      const isBackground = rect.parentNode === svgElement
+      if (isBackground) {
+        rect.style.fill = bg
+        rect.setAttribute('fill', bg)
+      } else {
+        rect.setAttribute('fill', '#000000')
+        rect.style.fill = '#000000'
+      }
       rect.setAttribute('shape-rendering', 'crispEdges')
       rect.style.shapeRendering = 'crispEdges'
     })

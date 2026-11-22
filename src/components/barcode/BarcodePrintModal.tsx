@@ -254,7 +254,7 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
                 image-rendering: crisp-edges !important;
                 image-rendering: pixelated !important;
               }
-              .barcode-box svg rect {
+              .barcode-box svg g rect {
                 fill: #000000 !important;
                 shape-rendering: crispEdges !important;
               }
@@ -370,7 +370,7 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
               image-rendering: crisp-edges !important;
               image-rendering: pixelated !important;
             }
-            .barcode-box svg rect {
+            .barcode-box svg g rect {
               fill: #000000 !important;
               shape-rendering: crispEdges !important;
             }
