@@ -21,6 +21,7 @@ import {
   calculateSheetLayout,
   renderBarcodeSvg,
   generateBarcodeSvgString,
+  getPhysicalBarcodeOptions,
 } from '../../lib/barcode'
 import { BRAND_EN, BRAND_MONOGRAM, getBarcodePrefix, getDefaultBarcodeSettings } from '../../lib/brand'
 import { barcodeService } from '../../services/barcodeService'
@@ -404,13 +405,6 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
     const isSmall = currentSizeConfig.heightMm <= 25
     const isLarge = currentSizeConfig.heightMm >= 40
 
-    // Proportional barcode sizing preventing detail overlaps
-    // Increased height and bolder bar width (min 1.6px, up to 2.5px) for rich, solid black prints
-    const barcodeHeightPx = Math.max(22, Math.round(currentSizeConfig.heightMm * 0.38 * 3.7795))
-    const printableWidthPx = Math.max(30, (currentSizeConfig.widthMm - 4) * 3.7795)
-    const barcodeBarWidth = Math.max(1.60, Math.min(2.50, Math.round((printableWidthPx / 100) * 100) / 100))
-    const barcodeFontSize = Math.max(7, Math.min(10, Math.round(currentSizeConfig.heightMm * 0.22 * 10) / 10))
-
     const headerFontSize = isSmall ? '7pt' : isLarge ? '10.5pt' : '8.5pt'
     const titleFontSize = isSmall ? '6pt' : isLarge ? '9pt' : '7.5pt'
     const tagFontSize = isSmall ? '5.5pt' : isLarge ? '8.5pt' : '7pt'
@@ -426,17 +420,10 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
       // Line 3 defaults to "Price: ₹…"; skip it when the price is already printed in the footer
       const line3 = item.line3 && !(settings.showSalePrice && /^price\s*:/i.test(item.line3)) ? esc(item.line3) : ''
       const line4 = item.line4 ? esc(item.line4) : ''
-      const svgMarkup = generateBarcodeSvgString(item.barcodeValue, {
-        width: barcodeBarWidth,
-        height: barcodeHeightPx,
-        fontSize: barcodeFontSize,
-        font: 'Arial, sans-serif',
-        fontOptions: 'bold',
-        margin: 0,
-        textMargin: 1.5,
-        displayValue: true,
-        lineColor: '#000000',
-      })
+      const svgMarkup = generateBarcodeSvgString(
+        item.barcodeValue,
+        getPhysicalBarcodeOptions(currentSizeConfig.widthMm, currentSizeConfig.heightMm)
+      )
       for (let i = 0; i < count; i++) {
         allStickers.push(`
           <div class="label-sticker">
@@ -648,7 +635,7 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
             .barcode-box svg {
               display: block;
               margin: 0 auto;
-              max-width: 99%;
+              max-width: 100%;
               max-height: 100%;
               width: auto;
               height: auto;

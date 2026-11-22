@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { X, Printer, Copy, Check } from 'lucide-react'
 import { BarcodeLabel } from './BarcodeLabel'
 import { BRAND_EN, getBarcodePrefix, getDefaultBarcodeSettings } from '../../lib/brand'
-import { getAllLabelSizes, generateBarcodeSvgString, getStoredBarcodeSettings, saveStoredBarcodeSettings, calculateSheetLayout } from '../../lib/barcode'
+import { getAllLabelSizes, generateBarcodeSvgString, getPhysicalBarcodeOptions, getStoredBarcodeSettings, saveStoredBarcodeSettings, calculateSheetLayout } from '../../lib/barcode'
 import { useAdminAuthStore, resolveBranch } from '../../store/store'
 
 export interface BarcodePrintModalProps {
@@ -117,24 +117,11 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
       const isSmall = selectedPreset.heightMm <= 25
       const isLarge = selectedPreset.heightMm >= 40
 
-      // Proportional barcode sizing: thicker, bolder bars for crystal clear scanning and deep black contrast
-      const barcodeHeightPx = Math.max(22, Math.round(selectedPreset.heightMm * 0.38 * 3.7795))
-      const printableWidthPx = Math.max(30, (selectedPreset.widthMm - 4) * 3.7795)
-      const barcodeBarWidth = Math.max(1.60, Math.min(2.50, Math.round((printableWidthPx / 100) * 100) / 100))
-      const barcodeFontSize = Math.max(7, Math.min(10, Math.round(selectedPreset.heightMm * 0.22 * 10) / 10))
-
-      // Direct SVG generation without CDN script dependencies
-      const svgMarkup = generateBarcodeSvgString(barcodeValue, {
-        width: barcodeBarWidth,
-        height: barcodeHeightPx,
-        fontSize: barcodeFontSize,
-        font: 'Arial, sans-serif',
-        fontOptions: 'bold',
-        margin: 0,
-        textMargin: 1.5,
-        displayValue: true,
-        lineColor: '#000000',
-      })
+      // Print-accurate barcode: whole-dot bar width, 10-module quiet zone, fixed mm size
+      const svgMarkup = generateBarcodeSvgString(
+        barcodeValue,
+        getPhysicalBarcodeOptions(selectedPreset.widthMm, selectedPreset.heightMm)
+      )
 
       const headerFontSize = isSmall ? '7pt' : isLarge ? '10.5pt' : '8.5pt'
       const titleFontSize = isSmall ? '6pt' : isLarge ? '9pt' : '7.5pt'
@@ -361,7 +348,7 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
             .barcode-box svg {
               display: block;
               margin: 0 auto;
-              max-width: 99%;
+              max-width: 100%;
               max-height: 100%;
               width: auto;
               height: auto;

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { renderBarcodeSvg } from '../../lib/barcode'
+import { renderBarcodeSvg, getPhysicalBarcodeOptions } from '../../lib/barcode'
 import { BRAND_EN } from '../../lib/brand'
 import { formatCurrency } from '../../lib/retail'
 
@@ -28,27 +28,11 @@ export const BarcodeLabel: React.FC<BarcodeLabelProps> = ({
   const isSmall = heightMm <= 25
   const isLarge = heightMm >= 40
 
-  // Dynamic calculation for barcode dimensions and typography (balanced proportions to prevent overlapping)
-  const barcodeHeightPx = Math.max(22, Math.round(heightMm * 0.38 * 3.7795))
-  const printableWidthPx = Math.max(30, (widthMm - 4) * 3.7795)
-  const barcodeBarWidth = Math.max(1.60, Math.min(2.50, Math.round((printableWidthPx / 100) * 100) / 100))
-  const barcodeFontSize = Math.max(7, Math.min(10, Math.round(heightMm * 0.22 * 10) / 10))
-
   useEffect(() => {
     if (svgRef.current && barcodeValue) {
-      renderBarcodeSvg(svgRef.current, barcodeValue, {
-        width: barcodeBarWidth,
-        height: barcodeHeightPx,
-        fontSize: barcodeFontSize,
-        font: 'Arial, sans-serif',
-        fontOptions: 'bold',
-        margin: 0,
-        textMargin: 1.5,
-        displayValue: true,
-        lineColor: '#000000',
-      })
+      renderBarcodeSvg(svgRef.current, barcodeValue, getPhysicalBarcodeOptions(widthMm, heightMm))
     }
-  }, [barcodeValue, widthMm, heightMm, barcodeHeightPx, barcodeBarWidth, barcodeFontSize])
+  }, [barcodeValue, widthMm, heightMm])
 
   const fullTitle = `${productName}${variantName ? ` (${variantName})` : ''}`
 
@@ -91,7 +75,7 @@ export const BarcodeLabel: React.FC<BarcodeLabelProps> = ({
         className="w-full flex-1 flex justify-center items-center overflow-hidden"
         style={{ margin: '0.4mm 0', minHeight: 0 }}
       >
-        <svg ref={svgRef} className="max-w-[98%] max-h-full h-auto" />
+        <svg ref={svgRef} style={{ maxWidth: '100%', flexShrink: 0 }} />
       </div>
 
       {/* Pricing Footer */}

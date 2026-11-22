@@ -218,6 +218,33 @@ export interface BarcodeRenderOptions {
   margin?: number
   lineColor?: string
   background?: string
+  /**
+   * Physical (print-accurate) sizing in millimetres. When set, width/height/fontSize
+   * above are ignored: the bar width is a whole number of printer dots (0.254mm = 2 dots
+   * @203dpi / 3 dots @300dpi), a 10-module quiet zone is added on both sides, and the
+   * SVG is given explicit mm dimensions so it is never rescaled by CSS.
+   */
+  physical?: {
+    availableWidthMm: number
+    barHeightMm: number
+    fontMm: number
+    moduleMm?: number
+    quietModules?: number
+  }
+}
+
+/** Print-accurate barcode sizing for a label of the given size (mm). */
+export function getPhysicalBarcodeOptions(widthMm: number, heightMm: number): BarcodeRenderOptions {
+  const innerPaddingMm = heightMm <= 25 ? 1.2 : 1.6
+  return {
+    displayValue: true,
+    font: 'Arial, sans-serif',
+    physical: {
+      availableWidthMm: Math.max(10, widthMm - innerPaddingMm * 2 - 0.4),
+      barHeightMm: Math.max(6, Math.round(heightMm * 0.3 * 10) / 10),
+      fontMm: Math.max(2.2, Math.min(3, Math.round(heightMm * 0.075 * 10) / 10)),
+    },
+  }
 }
 
 /**
@@ -231,6 +258,51 @@ export function renderBarcodeSvg(
   if (!svgElement || !value) return
 
   try {
+    if (options?.physical) {
+      const p = options.physical
+      const quiet = p.quietModules ?? 10
+      const preferredModuleMm = p.moduleMm ?? 0.254
+      // Pass 1: measure the symbol width in modules (bar width = 1 unit)
+      JsBarcode(svgElement, value.trim(), {
+        format: 'CODE128', width: 1, height: 10, displayValue: false,
+        marginLeft: quiet, marginRight: quiet, marginTop: 0, marginBottom: 0,
+      })
+      const totalModules = parseFloat(svgElement.getAttribute('viewBox')?.split(' ')[2] || '0') || 1
+      // Keep the ideal module width if it fits; otherwise shrink to fit the label
+      const moduleMm = Math.min(preferredModuleMm, p.availableWidthMm / totalModules)
+      // Pass 2: real render, with height/font expressed in module units
+      JsBarcode(svgElement, value.trim(), {
+        format: 'CODE128',
+        width: 1,
+        height: p.barHeightMm / moduleMm,
+        displayValue: options.displayValue ?? true,
+        fontOptions: 'bold',
+        fontSize: p.fontMm / moduleMm,
+        font: options.font ?? 'Arial, sans-serif',
+        textMargin: 0.5 / moduleMm,
+        marginLeft: quiet, marginRight: quiet, marginTop: 0, marginBottom: 0,
+        lineColor: options.lineColor ?? '#000000',
+        background: options.background ?? '#ffffff',
+      })
+      const vb = (svgElement.getAttribute('viewBox') || '0 0 1 1').split(' ').map(Number)
+      svgElement.setAttribute('width', `${(vb[2] * moduleMm).toFixed(3)}mm`)
+      svgElement.setAttribute('height', `${(vb[3] * moduleMm).toFixed(3)}mm`)
+      svgElement.setAttribute('shape-rendering', 'crispEdges')
+      svgElement.style.shapeRendering = 'crispEdges'
+      svgElement.querySelectorAll('rect').forEach((rect) => {
+        const isBackground = rect.parentNode === svgElement
+        const fill = isBackground ? options.background ?? '#ffffff' : '#000000'
+        rect.setAttribute('fill', fill)
+        rect.style.fill = fill
+        rect.setAttribute('shape-rendering', 'crispEdges')
+      })
+      svgElement.querySelectorAll('text').forEach((text) => {
+        text.setAttribute('fill', '#000000')
+        text.setAttribute('font-weight', 'bold')
+      })
+      return
+    }
+
     JsBarcode(svgElement, value.trim(), {
       format: 'CODE128',
       width: options?.width ?? 2,
