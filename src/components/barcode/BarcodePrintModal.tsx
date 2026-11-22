@@ -162,7 +162,34 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
     `
 
     // Calculate standard A4 vertical sheet layout & pagination
-    const layout = calculateSheetLayout(selectedPreset)
+    const baseLayout = calculateSheetLayout(selectedPreset)
+    const thermalCols = Math.max(1, selectedPreset.labelsPerRow || 1)
+    const thermalGapMm = thermalCols > 1 ? selectedPreset.horizontalGapMm || 0 : 0
+    // Thermal roll: the "page" is exactly one label row (no A4 sheet, no margins)
+    const layout = isThermal
+      ? {
+          ...baseLayout,
+          sheetWidthMm: thermalCols * selectedPreset.widthMm + (thermalCols - 1) * thermalGapMm,
+          sheetHeightMm: selectedPreset.heightMm,
+          marginTopMm: 0,
+          marginBottomMm: 0,
+          marginLeftMm: 0,
+          marginRightMm: 0,
+          columns: thermalCols,
+          stickerWidthMm: selectedPreset.widthMm,
+          stickerHeightMm: selectedPreset.heightMm,
+          horizontalGapMm: thermalGapMm,
+          verticalGapMm: 0,
+          stickersPerSheet: thermalCols,
+        }
+      : baseLayout
+    const pageSizeCss = isThermal
+      ? `${layout.sheetWidthMm}mm ${layout.sheetHeightMm}mm`
+      : 'A4 portrait'
+    const pageBoxCss = isThermal
+      ? `width: ${layout.sheetWidthMm}mm !important; height: ${layout.sheetHeightMm}mm !important; max-width: ${layout.sheetWidthMm}mm !important; max-height: ${layout.sheetHeightMm}mm !important;`
+      : 'width: 210mm !important; height: 297mm !important; max-width: 210mm !important; max-height: 297mm !important;'
+    const stickerBorderCss = isThermal ? 'none' : '0.15mm dashed #bbb'
 
     const allStickers: string[] = Array.from({ length: validQuantity }).map(() => singleStickerHtml)
 
@@ -190,7 +217,7 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
           <title>Print Barcode - ${barcodeValue}</title>
           <style>
             @page {
-              size: A4 portrait;
+              size: ${pageSizeCss};
               margin: 0mm !important;
             }
             * {
@@ -237,10 +264,7 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
               }
             }
             .sheet-page {
-              width: 210mm !important;
-              height: 297mm !important;
-              max-width: 210mm !important;
-              max-height: 297mm !important;
+              ${pageBoxCss}
               padding: ${layout.marginTopMm}mm ${layout.marginRightMm}mm ${layout.marginBottomMm}mm ${layout.marginLeftMm}mm !important;
               box-sizing: border-box !important;
               overflow: hidden !important;
@@ -253,10 +277,7 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
             }
             @media print {
               .sheet-page {
-                width: 210mm !important;
-                height: 297mm !important;
-                max-width: 210mm !important;
-                max-height: 297mm !important;
+                ${pageBoxCss}
                 padding: ${layout.marginTopMm}mm ${layout.marginRightMm}mm ${layout.marginBottomMm}mm ${layout.marginLeftMm}mm !important;
                 box-sizing: border-box !important;
                 overflow: hidden !important;
@@ -295,7 +316,7 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
               box-sizing: border-box !important;
               flex-shrink: 0 !important;
               background: #fff !important;
-              border: 0.15mm dashed #bbb !important;
+              border: ${stickerBorderCss} !important;
               break-inside: avoid !important;
               page-break-inside: avoid !important;
             }
