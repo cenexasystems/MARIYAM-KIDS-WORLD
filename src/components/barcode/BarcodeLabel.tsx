@@ -12,6 +12,7 @@ export interface BarcodeLabelProps {
   storeName?: string
   widthMm?: number
   heightMm?: number
+  printerDpi?: 203 | 300
 }
 
 export const BarcodeLabel: React.FC<BarcodeLabelProps> = ({
@@ -23,6 +24,7 @@ export const BarcodeLabel: React.FC<BarcodeLabelProps> = ({
   storeName = BRAND_EN,
   widthMm = 50,
   heightMm = 30,
+  printerDpi = 203,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null)
   const isSmall = heightMm <= 25
@@ -30,9 +32,9 @@ export const BarcodeLabel: React.FC<BarcodeLabelProps> = ({
 
   useEffect(() => {
     if (svgRef.current && barcodeValue) {
-      renderBarcodeSvg(svgRef.current, barcodeValue, getPhysicalBarcodeOptions(widthMm, heightMm))
+      renderBarcodeSvg(svgRef.current, barcodeValue, getPhysicalBarcodeOptions(widthMm, heightMm, heightMm <= 25 ? 1.4 : 1.6, printerDpi))
     }
-  }, [barcodeValue, widthMm, heightMm])
+  }, [barcodeValue, widthMm, heightMm, printerDpi])
 
   const fullTitle = `${productName}${variantName ? ` (${variantName})` : ''}`
 

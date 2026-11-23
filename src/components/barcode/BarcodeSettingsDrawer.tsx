@@ -171,6 +171,21 @@ export const BarcodeSettingsDrawer: React.FC<BarcodeSettingsDrawerProps> = ({
                       className="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm font-black text-black"
                     />
                   </label>
+                  <label className="col-span-2 text-[11px] font-bold text-gray-700">
+                    Printer resolution (bigger barcode on 300 dpi printers)
+                    <select
+                      value={settings.printerDpi ?? 203}
+                      onChange={(e) => {
+                        const updated: BarcodeSettings = { ...settings, printerDpi: e.target.value === '300' ? 300 : 203 }
+                        saveStoredBarcodeSettings(updated, branch)
+                        onUpdateSettings(updated)
+                      }}
+                      className="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm font-black text-black bg-white"
+                    >
+                      <option value={203}>203 dpi (most label printers)</option>
+                      <option value={300}>300 dpi</option>
+                    </select>
+                  </label>
                   <p className="col-span-2 text-[10px] text-gray-500">
                     If the left edge is cut off, enter 1 (moves print right). If the bottom is cut off, enter −1.
                   </p>

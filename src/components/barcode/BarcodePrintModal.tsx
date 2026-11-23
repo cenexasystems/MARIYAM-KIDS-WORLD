@@ -129,10 +129,10 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
       // Print-accurate barcode: whole-dot bar width, 10-module quiet zone, fixed mm size
       const svgMarkup = generateBarcodeSvgString(
         barcodeValue,
-        getPhysicalBarcodeOptions(selectedPreset.widthMm, selectedPreset.heightMm, stickerPad.horizontalMm)
+        getPhysicalBarcodeOptions(selectedPreset.widthMm, selectedPreset.heightMm, stickerPad.horizontalMm, storedSettings.printerDpi ?? 203)
       )
 
-      const headerFontSize = isSmall ? '7pt' : isLarge ? '10.5pt' : '8.5pt'
+      const headerFontSize = isSmall ? (selectedPreset.widthMm < 40 ? '5.5pt' : '7pt') : isLarge ? '10.5pt' : '8.5pt'
       const titleFontSize = isSmall ? '6pt' : isLarge ? '9pt' : '7.5pt'
       const tagFontSize = isSmall ? '5.5pt' : isLarge ? '8.5pt' : '7pt'
       const priceFontSize = isSmall ? '8pt' : isLarge ? '12pt' : '9.5pt'
@@ -315,6 +315,7 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
               break-inside: avoid !important;
               page-break-inside: avoid !important;
             }
+            .sticker, .label-sticker { -webkit-text-stroke: 0.2px #000; }
             .header {
               width: 100%;
               display: flex;
@@ -325,6 +326,7 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
               flex-shrink: 0;
             }
             .brand {
+              white-space: nowrap;
               font-size: ${headerFontSize};
               font-weight: 900;
               letter-spacing: 0.3px;
@@ -334,13 +336,13 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
             }
             .prod-title {
               font-size: ${titleFontSize};
-              font-weight: 700;
+              font-weight: 800;
               white-space: nowrap;
               overflow: hidden;
               text-overflow: ellipsis;
               max-width: 98%;
               margin-top: 0.3mm;
-              color: #111;
+              color: #000;
               line-height: 1.1;
             }
             .barcode-box {
@@ -379,7 +381,7 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
               display: flex;
               justify-content: space-between;
               align-items: center;
-              border-top: 0.6pt solid #000;
+              border-top: 0.9pt solid #000;
               padding-top: 0.5mm;
               line-height: 1;
               flex-shrink: 0;
@@ -387,13 +389,13 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
             .retail-tag {
               font-size: ${tagFontSize};
               font-weight: 800;
-              color: #444;
+              color: #000;
             }
             .mrp {
               text-decoration: line-through;
-              color: #555;
+              color: #000;
               font-size: ${tagFontSize};
-              font-weight: 600;
+              font-weight: 800;
             }
             .price {
               font-size: ${priceFontSize};
@@ -639,6 +641,7 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
                 storeName={BRAND_EN}
                 widthMm={selectedPreset.widthMm}
                 heightMm={selectedPreset.heightMm}
+                printerDpi={storedSettings.printerDpi ?? 203}
               />
             </div>
           </div>

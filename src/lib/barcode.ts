@@ -41,6 +41,8 @@ export interface BarcodeSettings {
   /** Thermal alignment calibration in mm: + shifts print right / down, − shifts left / up. */
   offsetXmm?: number
   offsetYmm?: number
+  /** Thermal printer resolution (dots per inch). Bar widths snap to whole dots. Default 203. */
+  printerDpi?: 203 | 300
 }
 
 /**
@@ -248,11 +250,14 @@ export interface BarcodeRenderOptions {
    * SVG is given explicit mm dimensions so it is never rescaled by CSS.
    */
   physical?: {
+    /** Label width minus its side padding (mm). The padding itself counts as white quiet zone. */
     availableWidthMm: number
+    /** Side padding of the sticker (mm) — white paper next to the barcode. */
+    paddingMm: number
     barHeightMm: number
     fontMm: number
-    moduleMm?: number
-    quietModules?: number
+    /** Printer resolution; bar width is always a whole number of dots. Default 203. */
+    dpi?: number
   }
 }
 
@@ -260,15 +265,20 @@ export interface BarcodeRenderOptions {
 export function getPhysicalBarcodeOptions(
   widthMm: number,
   heightMm: number,
-  innerPaddingMm: number = heightMm <= 25 ? 1.2 : 1.6
+  innerPaddingMm: number = heightMm <= 25 ? 1.2 : 1.6,
+  dpi: number = 203
 ): BarcodeRenderOptions {
   return {
     displayValue: true,
     font: 'Arial, sans-serif',
     physical: {
-      availableWidthMm: Math.max(10, widthMm - innerPaddingMm * 2 - 0.4),
-      barHeightMm: Math.max(6, Math.round(heightMm * 0.3 * 10) / 10),
-      fontMm: Math.max(2.2, Math.min(3, Math.round(heightMm * 0.075 * 10) / 10)),
+      availableWidthMm: Math.max(10, widthMm - innerPaddingMm * 2),
+      paddingMm: innerPaddingMm,
+      // Bar height from the vertical room a label really has (header + footer take a fixed share)
+      barHeightMm:
+        heightMm <= 22 ? 6 : heightMm <= 25 ? 9 : Math.round(heightMm * (heightMm <= 30 ? 0.34 : 0.38) * 10) / 10,
+      fontMm: Math.max(2.4, Math.min(3.2, Math.round(heightMm * 0.085 * 10) / 10)),
+      dpi: dpi === 300 ? 300 : 203,
     },
   }
 }
@@ -286,16 +296,33 @@ export function renderBarcodeSvg(
   try {
     if (options?.physical) {
       const p = options.physical
-      const quiet = p.quietModules ?? 10
-      const preferredModuleMm = p.moduleMm ?? 0.254
-      // Pass 1: measure the symbol width in modules (bar width = 1 unit)
+      const dpi = p.dpi ?? 203
+      // Pass 1: measure the bare symbol width in modules (bar width = 1 unit, no margins)
       JsBarcode(svgElement, value.trim(), {
         format: 'CODE128', width: 1, height: 10, displayValue: false,
-        marginLeft: quiet, marginRight: quiet, marginTop: 0, marginBottom: 0,
+        margin: 0,
       })
-      const totalModules = parseFloat(svgElement.getAttribute('viewBox')?.split(' ')[2] || '0') || 1
-      // Keep the ideal module width if it fits; otherwise shrink to fit the label
-      const moduleMm = Math.min(preferredModuleMm, p.availableWidthMm / totalModules)
+      const symbolModules = parseFloat(svgElement.getAttribute('viewBox')?.split(' ')[2] || '0') || 1
+      // Quiet zone needed = 10 modules; the sticker's white side padding already supplies part of it
+      const quietFor = (mm: number) => Math.max(0, Math.ceil(10 - p.paddingMm / mm))
+      // Pick the widest bar that is a whole number of printer dots AND still fits on the label
+      let moduleMm = 0
+      let quiet = 0
+      for (let dots = 8; dots >= 2; dots--) {
+        const mm = (dots * 25.4) / dpi
+        const q = quietFor(mm)
+        if ((symbolModules + 2 * q) * mm <= p.availableWidthMm) {
+          moduleMm = mm
+          quiet = q
+          break
+        }
+      }
+      if (!moduleMm) {
+        // Label too narrow for a 2-dot bar: shrink to fit as a last resort
+        const mm0 = (2 * 25.4) / dpi
+        quiet = quietFor(mm0)
+        moduleMm = p.availableWidthMm / (symbolModules + 2 * quiet)
+      }
       // Pass 2: real render, with height/font expressed in module units
       JsBarcode(svgElement, value.trim(), {
         format: 'CODE128',
@@ -306,7 +333,10 @@ export function renderBarcodeSvg(
         fontSize: p.fontMm / moduleMm,
         font: options.font ?? 'Arial, sans-serif',
         textMargin: 0.5 / moduleMm,
-        marginLeft: quiet, marginRight: quiet, marginTop: 0, marginBottom: 0,
+        // NB: JsBarcode treats 0 as "unset" for the side margins and falls back to `margin`,
+        // so the base margin must be 0 explicitly or every side silently gets 10 units.
+        margin: 0,
+        marginLeft: quiet, marginRight: quiet,
         lineColor: options.lineColor ?? '#000000',
         background: options.background ?? '#ffffff',
       })
