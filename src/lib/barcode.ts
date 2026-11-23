@@ -38,6 +38,29 @@ export interface BarcodeSettings {
   showCompanyName: boolean
   showItemName: boolean
   showDiscount: boolean
+  /** Thermal alignment calibration in mm: + shifts print right / down, − shifts left / up. */
+  offsetXmm?: number
+  offsetYmm?: number
+}
+
+/**
+ * Inner sticker padding (CSS `top right bottom left`). Thermal rolls get larger safe margins
+ * (printers cut off the outer ~1-2mm) plus the user's X/Y alignment calibration.
+ */
+export function getStickerPadding(
+  widthMm: number,
+  heightMm: number,
+  isThermal: boolean,
+  offsetXmm = 0,
+  offsetYmm = 0
+): { css: string; horizontalMm: number } {
+  const clamp = (n: number) => Math.max(-4, Math.min(4, Number.isFinite(n) ? n : 0))
+  const x = isThermal ? clamp(offsetXmm) : 0
+  const y = isThermal ? clamp(offsetYmm) : 0
+  const h = isThermal ? (widthMm >= 45 ? 2.6 : 1.8) : heightMm <= 25 ? 1.2 : 1.6
+  const v = isThermal ? (heightMm <= 25 ? 1.4 : 1.6) : heightMm <= 25 ? 0.6 : 1.0
+  const f = (n: number) => `${Math.max(0, n).toFixed(2)}mm`
+  return { css: `${f(v + y)} ${f(h - x)} ${f(v - y)} ${f(h + x)}`, horizontalMm: h + Math.abs(x) }
 }
 
 export const DEFAULT_BARCODE_SETTINGS: BarcodeSettings = {
@@ -234,8 +257,11 @@ export interface BarcodeRenderOptions {
 }
 
 /** Print-accurate barcode sizing for a label of the given size (mm). */
-export function getPhysicalBarcodeOptions(widthMm: number, heightMm: number): BarcodeRenderOptions {
-  const innerPaddingMm = heightMm <= 25 ? 1.2 : 1.6
+export function getPhysicalBarcodeOptions(
+  widthMm: number,
+  heightMm: number,
+  innerPaddingMm: number = heightMm <= 25 ? 1.2 : 1.6
+): BarcodeRenderOptions {
   return {
     displayValue: true,
     font: 'Arial, sans-serif',

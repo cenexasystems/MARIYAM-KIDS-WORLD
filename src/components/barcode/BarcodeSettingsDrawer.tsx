@@ -59,6 +59,14 @@ export const BarcodeSettingsDrawer: React.FC<BarcodeSettingsDrawerProps> = ({
     onUpdateSettings(updated)
   }
 
+  const handleOffsetChange = (field: 'offsetXmm' | 'offsetYmm', raw: string) => {
+    const n = parseFloat(raw)
+    const value = Number.isFinite(n) ? Math.max(-4, Math.min(4, n)) : 0
+    const updated: BarcodeSettings = { ...settings, [field]: value }
+    saveStoredBarcodeSettings(updated, branch)
+    onUpdateSettings(updated)
+  }
+
   const handleSizeChange = (sizeId: string) => {
     const updated: BarcodeSettings = { ...settings, selectedSizeId: sizeId }
     saveStoredBarcodeSettings(updated, branch)
@@ -128,6 +136,47 @@ export const BarcodeSettingsDrawer: React.FC<BarcodeSettingsDrawerProps> = ({
                 </label>
               </div>
             </div>
+
+            {/* Thermal alignment calibration */}
+            {settings.printerType === 'label' && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-black uppercase tracking-wider text-gray-800">
+                    Print Alignment (mm)
+                  </span>
+                  <span className="text-[10px] text-gray-400 font-bold italic">Fix cut-off edges</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 bg-[#FBFAF6] p-3 rounded-xl border border-gray-200">
+                  <label className="text-[11px] font-bold text-gray-700">
+                    Left (−) / Right (+)
+                    <input
+                      type="number"
+                      step="0.5"
+                      min={-4}
+                      max={4}
+                      value={settings.offsetXmm ?? 0}
+                      onChange={(e) => handleOffsetChange('offsetXmm', e.target.value)}
+                      className="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm font-black text-black"
+                    />
+                  </label>
+                  <label className="text-[11px] font-bold text-gray-700">
+                    Up (−) / Down (+)
+                    <input
+                      type="number"
+                      step="0.5"
+                      min={-4}
+                      max={4}
+                      value={settings.offsetYmm ?? 0}
+                      onChange={(e) => handleOffsetChange('offsetYmm', e.target.value)}
+                      className="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm font-black text-black"
+                    />
+                  </label>
+                  <p className="col-span-2 text-[10px] text-gray-500">
+                    If the left edge is cut off, enter 1 (moves print right). If the bottom is cut off, enter −1.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Section 2: Size */}
             <div>

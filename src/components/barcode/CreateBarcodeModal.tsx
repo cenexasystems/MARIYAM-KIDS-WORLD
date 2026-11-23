@@ -22,6 +22,7 @@ import {
   renderBarcodeSvg,
   generateBarcodeSvgString,
   getPhysicalBarcodeOptions,
+  getStickerPadding,
 } from '../../lib/barcode'
 import { BRAND_EN, BRAND_MONOGRAM, getBarcodePrefix, getDefaultBarcodeSettings } from '../../lib/brand'
 import { barcodeService } from '../../services/barcodeService'
@@ -409,7 +410,14 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
     const titleFontSize = isSmall ? '6pt' : isLarge ? '9pt' : '7.5pt'
     const tagFontSize = isSmall ? '5.5pt' : isLarge ? '8.5pt' : '7pt'
     const priceFontSize = isSmall ? '8pt' : isLarge ? '12pt' : '9.5pt'
-    const stickerPadding = isSmall ? '0.6mm 1.2mm' : '1.0mm 1.6mm'
+    const stickerPad = getStickerPadding(
+      currentSizeConfig.widthMm,
+      currentSizeConfig.heightMm,
+      isThermal,
+      settings.offsetXmm,
+      settings.offsetYmm
+    )
+    const stickerPadding = stickerPad.css
 
     // Generate individual sticker cards HTML with pre-rendered SVGs
     const allStickers: string[] = []
@@ -422,7 +430,7 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
       const line4 = item.line4 ? esc(item.line4) : ''
       const svgMarkup = generateBarcodeSvgString(
         item.barcodeValue,
-        getPhysicalBarcodeOptions(currentSizeConfig.widthMm, currentSizeConfig.heightMm)
+        getPhysicalBarcodeOptions(currentSizeConfig.widthMm, currentSizeConfig.heightMm, stickerPad.horizontalMm)
       )
       for (let i = 0; i < count; i++) {
         allStickers.push(`

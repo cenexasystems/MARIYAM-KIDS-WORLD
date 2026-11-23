@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { X, Printer, Copy, Check } from 'lucide-react'
 import { BarcodeLabel } from './BarcodeLabel'
 import { BRAND_EN, getBarcodePrefix, getDefaultBarcodeSettings } from '../../lib/brand'
-import { getAllLabelSizes, generateBarcodeSvgString, getPhysicalBarcodeOptions, getStoredBarcodeSettings, saveStoredBarcodeSettings, calculateSheetLayout } from '../../lib/barcode'
+import { getAllLabelSizes, generateBarcodeSvgString, getPhysicalBarcodeOptions, getStickerPadding, getStoredBarcodeSettings, saveStoredBarcodeSettings, calculateSheetLayout } from '../../lib/barcode'
 import { useAdminAuthStore, resolveBranch } from '../../store/store'
 
 export interface BarcodePrintModalProps {
@@ -117,17 +117,25 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
       const isSmall = selectedPreset.heightMm <= 25
       const isLarge = selectedPreset.heightMm >= 40
 
+      const stickerPad = getStickerPadding(
+        selectedPreset.widthMm,
+        selectedPreset.heightMm,
+        isThermal,
+        storedSettings.offsetXmm,
+        storedSettings.offsetYmm
+      )
+      const stickerPadding = stickerPad.css
+
       // Print-accurate barcode: whole-dot bar width, 10-module quiet zone, fixed mm size
       const svgMarkup = generateBarcodeSvgString(
         barcodeValue,
-        getPhysicalBarcodeOptions(selectedPreset.widthMm, selectedPreset.heightMm)
+        getPhysicalBarcodeOptions(selectedPreset.widthMm, selectedPreset.heightMm, stickerPad.horizontalMm)
       )
 
       const headerFontSize = isSmall ? '7pt' : isLarge ? '10.5pt' : '8.5pt'
       const titleFontSize = isSmall ? '6pt' : isLarge ? '9pt' : '7.5pt'
       const tagFontSize = isSmall ? '5.5pt' : isLarge ? '8.5pt' : '7pt'
       const priceFontSize = isSmall ? '8pt' : isLarge ? '12pt' : '9.5pt'
-      const stickerPadding = isSmall ? '0.6mm 1.2mm' : '1.0mm 1.6mm'
 
     // Build standalone HTML for the printed stickers with strict thermal proportions
     const parsedQty = parseInt(quantity.trim(), 10)
