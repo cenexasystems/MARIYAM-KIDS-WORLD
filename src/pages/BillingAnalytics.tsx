@@ -651,6 +651,7 @@ export default function BillingAnalytics() {
     { label: netProfit < 0 ? 'Net Loss' : 'Net Profit', helper: `Revenue (${formatCurrency(analytics.totalCompletedRevenue)}) − Expenses (${formatCurrency(expenseTotal)})`, value: formatCurrency(Math.abs(netProfit)), icon: netProfit < 0 ? <TrendingDown size={18} /> : <TrendingUp size={18} />, color: netProfit < 0 ? 'text-rose-600' : 'text-emerald-700', bg: netProfit < 0 ? 'bg-rose-50' : 'bg-emerald-50' },
     { label: 'Total Expenses', helper: 'Expenses in selected period', value: formatCurrency(expenseTotal), icon: <Receipt size={18} />, color: 'text-amber-700', bg: 'bg-amber-50' },
     { label: 'Offline Revenue', helper: 'Completed walk-in POS sales', value: formatCurrency(analytics.posRevenue), icon: <RMIcon size={18} />, color: 'text-cyan-700', bg: 'bg-cyan-50' },
+    { label: 'Online Revenue', helper: 'Completed online POS sales', value: formatCurrency(analytics.onlinePosRevenue), icon: <RMIcon size={18} />, color: 'text-sky-700', bg: 'bg-sky-50' },
     { label: 'Completed Bills', helper: 'Completed POS and manual bills; advances shown separately', value: analytics.completedOrders, icon: <Trophy size={18} />, color: 'text-green-700', bg: 'bg-green-50' },
     { label: 'Total Offline Bills', helper: 'Walk-in POS orders', value: analytics.offlineBillCount, icon: <Grid2X2 size={18} />, color: 'text-rose-700', bg: 'bg-rose-50' },
     { label: 'Total Online Bills', helper: 'Completed online POS orders', value: analytics.onlineBillCount, icon: <Package size={18} />, color: 'text-blue-700', bg: 'bg-blue-50' },
@@ -658,6 +659,8 @@ export default function BillingAnalytics() {
     { label: 'Average Revenue Per Bill', helper: 'Revenue per completed invoice, including advances', value: formatCurrency(analytics.averageRevenuePerBill), icon: <RMIcon size={18} />, color: 'text-emerald-700', bg: 'bg-emerald-50' },
     { label: 'Top Product', helper: 'Most sold item in selected period', value: analytics.bestProduct, icon: <Trophy size={18} />, color: 'text-pink-700', bg: 'bg-pink-50' },
     { label: 'Completed Advance Orders', helper: `${completedAdvanceOrders.length} orders completed`, value: formatCurrency(completedAdvanceTotal), icon: <Package size={18} />, color: 'text-violet-700', bg: 'bg-violet-50' },
+    { label: 'Manual Sales Revenue', helper: 'Bills entered manually', value: formatCurrency(analytics.manualRevenue), icon: <Receipt size={18} />, color: 'text-fuchsia-700', bg: 'bg-fuchsia-50' },
+    { label: 'Online Revenue Share', helper: 'Online sales as % of total revenue', value: `${analytics.totalCompletedRevenue > 0 ? Math.round((analytics.onlinePosRevenue / analytics.totalCompletedRevenue) * 100) : 0}%`, icon: <TrendingUp size={18} />, color: 'text-blue-700', bg: 'bg-blue-50' },
     { label: 'Advance Deposits Received', helper: `${depositOrders.length} non-cancelled advance orders`, value: formatCurrency(depositTotal), icon: <Wallet size={18} />, color: 'text-sky-700', bg: 'bg-sky-50' },
   ]
 

@@ -3004,6 +3004,14 @@ export default function Dashboard() {
                       bg: 'bg-cyan-50',
                     },
                     {
+                      label: 'Online Revenue',
+                      helper: 'Online POS sales',
+                      value: formatCurrency(analytics.onlinePosRevenue),
+                      icon: <RMIcon size={16} />,
+                      color: 'text-sky-500',
+                      bg: 'bg-sky-50',
+                    },
+                    {
                       label: 'Total Offline Bills',
                       helper: 'Walk-in POS orders',
                       value: String(analytics.offlineOrderCount),
@@ -3034,6 +3042,14 @@ export default function Dashboard() {
                       icon: <RMIcon size={16} />,
                       color: 'text-emerald-500',
                       bg: 'bg-emerald-50',
+                    },
+                    {
+                      label: 'Manual Sales Revenue',
+                      helper: 'Bills entered manually',
+                      value: formatCurrency(analytics.manualRevenue),
+                      icon: <Receipt size={16} />,
+                      color: 'text-fuchsia-500',
+                      bg: 'bg-fuchsia-50',
                     },
                     {
                       label: 'Top Product',
