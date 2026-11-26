@@ -3004,14 +3004,6 @@ export default function Dashboard() {
                       bg: 'bg-cyan-50',
                     },
                     {
-                      label: 'Online Revenue',
-                      helper: 'Online POS sales',
-                      value: formatCurrency(analytics.onlinePosRevenue),
-                      icon: <RMIcon size={16} />,
-                      color: 'text-sky-500',
-                      bg: 'bg-sky-50',
-                    },
-                    {
                       label: 'Total Offline Bills',
                       helper: 'Walk-in POS orders',
                       value: String(analytics.offlineOrderCount),
@@ -3044,20 +3036,28 @@ export default function Dashboard() {
                       bg: 'bg-emerald-50',
                     },
                     {
-                      label: 'Manual Sales Revenue',
-                      helper: 'Bills entered manually',
-                      value: formatCurrency(analytics.manualRevenue),
-                      icon: <Receipt size={16} />,
-                      color: 'text-fuchsia-500',
-                      bg: 'bg-fuchsia-50',
-                    },
-                    {
                       label: 'Top Product',
                       helper: 'Most sold item',
                       value: analytics.bestProduct || 'No sales yet',
                       icon: <Trophy size={16} />,
                       color: 'text-pink-500',
                       bg: 'bg-pink-50',
+                    },
+                    {
+                      label: 'Online Revenue',
+                      helper: 'Online POS sales',
+                      value: formatCurrency(analytics.onlinePosRevenue),
+                      icon: <RMIcon size={16} />,
+                      color: 'text-sky-500',
+                      bg: 'bg-sky-50',
+                    },
+                    {
+                      label: 'Advance Orders Revenue',
+                      helper: 'Completed advance / custom orders',
+                      value: formatCurrency(analytics.advanceRevenue),
+                      icon: <Receipt size={16} />,
+                      color: 'text-violet-500',
+                      bg: 'bg-violet-50',
                     },
                   ].map((card, index) => (
                     <div key={index} className="bg-white rounded-card border border-borderLight p-5 sm:p-5 shadow-soft flex flex-col justify-between hover:shadow-md transition-shadow">
