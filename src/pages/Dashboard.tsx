@@ -2065,7 +2065,7 @@ export default function Dashboard() {
         { id: 'billing',        icon: <ShoppingCart size={18} />, label: 'Store Dashboard & POS' },
         { id: 'inventory',      icon: <Layers size={18} />,       label: 'Stock & Inventory' },
         { id: 'expenses',       icon: <Receipt size={18} />,      label: 'Expenses Ledger' },
-        { id: 'advance_orders', icon: <FileText size={18} />,     label: 'Advance & Custom Orders' },
+        { id: 'advance_orders', icon: <FileText size={18} />,     label: 'Advance Orders' },
         { id: 'history',        icon: <List size={18} />,         label: 'Order History' },
         { id: 'pos_analytics',  icon: <BarChart2 size={18} />,    label: 'Analytics Dashboard' },
         { id: 'coupons',        icon: <Box size={18} />,          label: 'Coupons' },
@@ -3005,7 +3005,7 @@ export default function Dashboard() {
                     },
                     {
                       label: 'Advance Orders Revenue',
-                      helper: 'Completed advance / custom orders',
+                      helper: 'Completed advance orders',
                       value: formatCurrency(analytics.advanceRevenue),
                       icon: <Receipt size={16} />,
                       color: 'text-violet-500',
